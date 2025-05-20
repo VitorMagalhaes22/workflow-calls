@@ -8,11 +8,11 @@ on:
       default: 17
       type : number
      maven_version:
-      required: true
+      required: false
       default: 3.9.8
       type : string
      folder_allure:
-      required: true
+      required: false
       default: "target/allure_results"
       type : string
 
