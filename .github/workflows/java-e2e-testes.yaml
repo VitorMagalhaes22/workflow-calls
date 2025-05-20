@@ -1,67 +1,63 @@
-name : Execução E2E
+name: Execução E2E Testes
 
 on:
   workflow_call:
-    inputs :
-     java_version:
-      required: false
-      default: 17
-      type : number
-     maven_version:
-      required: false
-      default: 3.9.8
-      type : string
-     folder_allure:
-      required: false
-      default: "target/allure_results"
-      type : string
-
-
-    secrets :
-     git_token:
-       required: true
-
-
+    inputs:
+      java_version:
+        required: false
+        default: 18
+        type: number
+      maven_version:
+        required: false
+        default: "3.9.4"
+        type: string
+      folder_allure:
+        required: false
+        default: "target/allure-results"
+        type: string
+    secrets:
+      git_token:
+        required: true
 
 jobs:
-  e2e-tests:
+  mvn-run:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Setup Maven Action
-        uses: s4u/setup-maven-action@v1.18.0
+      - name: Set up Maven
+        uses: s4u/setup-maven-action@v1.8.0
         with:
-          java-version: ${{ inputs.java_version}}
-          maven-version: ${{ inputs.maven_version}}
+          java-version: ${{ inputs.java_version }}
+          maven-version: ${{ inputs.maven_version }}
 
-      - name: Execute e2e tests
+      - name: Run tests
         run: mvn clean install
 
       - name: Get Allure history
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         if: always()
         continue-on-error: true
         with:
           ref: gh-pages
           path: gh-pages
 
-      - name: Generate allure report
+      - name: Test marketplace action
         uses: simple-elf/allure-report-action@master
         if: always()
-        id: allure-report
         with:
-          allure_results: ${{ inputs.folder_allure}}
+          allure_results: ${{ inputs.folder_allure }}
           gh_pages: gh-pages
           allure_report: allure-report
           allure_history: allure-history
 
       - name: Deploy report to Github Pages
-        if: always  ()
-        uses: peaceiris/actions-gh-pages@v2
-        env:
-          PERSONAL_TOKEN: ${{ secrets.git_token }}
-          PUBLISH_BRANCH: gh-pages
-          PUBLISH_DIR: allure-history
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.git_token }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
